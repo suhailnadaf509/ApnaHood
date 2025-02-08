@@ -1,0 +1,345 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+}
+
+// ----------------
+// User Management
+// ----------------
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  username        String         @unique
+  password        String
+  role            UserRole      @default(MEMBER)
+  avatar          String?
+  isVerified      Boolean       @default(false)
+  provider        Provider?
+  
+  // Relations
+  posts           Post[]
+  comments        Comment[]
+  likes           Like[]
+  resources       Resource[]    // Resources they manage
+  reportsSubmitted Report[]     @relation("ReportedBy")
+  reportsAssigned Report[]      @relation("AssignedTo")
+  reportUpdates   ReportUpdate[]
+  notifications   Notification[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ----------------
+// Community Board
+// ----------------
+model Post {
+  id          String       @id @default(cuid())
+  type        PostType
+  status      PostStatus   @default(ACTIVE)
+  title       String
+  content     String       @db.Text
+  pinned      Boolean      @default(false)
+  
+  // Relations
+  author      User         @relation(fields: [authorId], references: [id])
+  authorId    String
+  category    Category     @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  comments    Comment[]
+  likes       Like[]
+  attachments Attachment[]
+  tags        Tag[]
+  reports     Report[]
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId  String?
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ----------------
+// Resources
+// ----------------
+model Resource {
+  id          String    @id @default(cuid())
+  name        String
+  type        ResourceType
+  description String    @db.Text
+  website     String?
+  isActive    Boolean   @default(true)
+  
+  // Location
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  latitude    Float?
+  longitude   Float?
+  
+  // Contact
+  phone       String?
+  email       String?
+  contactName String?
+  
+  // Relations
+  manager     User?      @relation(fields: [managerId], references: [id])
+  managerId   String?
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+  hours       Hours[]
+  services    String[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Hours {
+  id          String    @id @default(cuid())
+  dayOfWeek   Int       // 0-6 for Sunday-Saturday
+  openTime    DateTime
+  closeTime   DateTime
+  resource    Resource  @relation(fields: [resourceId], references: [id])
+  resourceId  String
+}
+
+// ----------------
+// Reports System
+// ----------------
+model Report {
+  id            String        @id @default(cuid())
+  type          ReportType
+  status        ReportStatus  @default(PENDING)
+  priority      Priority      @default(MEDIUM)
+  title         String
+  description   String        @db.Text
+  
+  // Location
+  location      String?
+  latitude      Float?
+  longitude     Float?
+  
+  // Pet Sighting specific fields (null if not a pet sighting)
+  petDetails    PetDetails?
+  
+  // Relations
+  reporter      User          @relation("ReportedBy", fields: [reporterId], references: [id])
+  reporterId    String
+  assignedTo    User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId  String?
+  category      Category      @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  relatedPost   Post?         @relation(fields: [postId], references: [id])
+  postId        String?
+  updates       ReportUpdate[]
+  attachments   Attachment[]
+  
+  isAnonymous   Boolean       @default(false)
+  resolution    String?       @db.Text
+  resolvedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model PetDetails {
+  id            String    @id @default(cuid())
+  report        Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId      String    @unique
+  petType       PetType
+  breed         String?
+  color         String[]
+  size          PetSize
+  name          String?
+  features      String[]
+  collarDetails String?
+  microchipped  Boolean?
+  lastSeen      DateTime
+  contactMethod ContactMethod @default(EITHER)
+  contactPhone  String?
+  contactEmail  String?
+}
+
+model ReportUpdate {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+  report      Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    String
+  createdAt   DateTime  @default(now())
+}
+
+// ----------------
+// Shared Models
+// ----------------
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  slug        String     @unique
+  type        String     // "post", "resource", "report"
+  posts       Post[]
+  resources   Resource[]
+  reports     Report[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  posts     Post[]
+  createdAt DateTime  @default(now())
+}
+
+model Attachment {
+  id          String    @id @default(cuid())
+  url         String
+  filename    String
+  type        String    // "image", "document", "video"
+  size        Int
+  post        Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      String?
+  report      Report?   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId    String?
+  createdAt   DateTime  @default(now())
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  title       String
+  content     String
+  read        Boolean          @default(false)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime         @default(now())
+}
+
+// ----------------
+// Enums
+// ----------------
+enum UserRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum PostType {
+  ANNOUNCEMENT
+  EVENT
+  DISCUSSION
+  QUESTION
+}
+
+enum PostStatus {
+  ACTIVE
+  ARCHIVED
+  REPORTED
+  DELETED
+}
+
+enum ResourceType {
+  FOOD_BANK
+  SHELTER
+  MEDICAL
+  EDUCATION
+  RECREATION
+  COMMUNITY_CENTER
+  OTHER
+}
+
+enum ReportType {
+  SAFETY_CONCERN
+  MAINTENANCE
+  NOISE_COMPLAINT
+  SUSPICIOUS_ACTIVITY
+  HARASSMENT
+  CONTENT_VIOLATION
+  PROPERTY_DAMAGE
+  PET_SIGHTING
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  IN_REVIEW
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PetType {
+  DOG
+  CAT
+  BIRD
+  RABBIT
+  HAMSTER
+  GUINEA_PIG
+  FERRET
+  REPTILE
+  OTHER
+}
+
+enum PetSize {
+  VERY_SMALL
+  SMALL
+  MEDIUM
+  LARGE
+  VERY_LARGE
+}
+
+enum ContactMethod {
+  PHONE
+  EMAIL
+  EITHER
+}
+
+enum NotificationType {
+  REPORT_UPDATE
+  COMMENT_REPLY
+  POST_LIKE
+  ASSIGNMENT
+  PET_MATCH
+  SYSTEM
+}
+
+enum Provider {
+  GOOGLE
+}
