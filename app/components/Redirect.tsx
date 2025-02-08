@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function Redirect() {
-  const session = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
+
   useEffect(() => {
-    if (session?.data?.user) {
+    if (status === "authenticated" && session?.user) {
       router.push("/dashboard");
+    } else if (status === "unauthenticated") {
+      router.push("/");
     }
-  }, [session]);
+  }, [session, status]);
+
   return null;
 }
