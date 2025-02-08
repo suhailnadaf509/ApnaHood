@@ -12,7 +12,6 @@ export async function createPost(formData: FormData) {
   const content = formData.get("content") as string;
   const image = formData.get("image") as File | null;
 
-  // Validate title and content
   if (!title || !content) {
     throw new Error("Title and content are required.");
   }
@@ -22,7 +21,6 @@ export async function createPost(formData: FormData) {
   if (image) {
     const uploadsDir = join("public", "uploads");
 
-    // Ensure the uploads directory exists
     try {
       await mkdirAsync(uploadsDir, { recursive: true });
     } catch (error) {
