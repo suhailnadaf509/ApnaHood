@@ -13,8 +13,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Navigation */}
-
       <nav className="border-b border-zinc-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -22,7 +20,6 @@ export default function LandingPage() {
               DataBridge
             </Link>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <Link
                 href="#features"
@@ -79,7 +76,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Mobile Navigation */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -105,9 +101,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="py-20 md:py-32 relative">
-        {/* Add background image */}
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -116,11 +110,9 @@ export default function LandingPage() {
             backgroundPosition: "center",
           }}
         >
-          {/* Add gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black"></div>
         </div>
 
-        {/* Update container to be relative and above the background */}
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Connecting Communities with Resources
@@ -140,7 +132,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 bg-zinc-900/50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
@@ -195,7 +186,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
@@ -213,7 +203,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-zinc-800 py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
