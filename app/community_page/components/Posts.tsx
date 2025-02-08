@@ -86,7 +86,7 @@ export default function Posts() {
     if ("error" in result) {
       return { error: result.error };
     }
-    setPosts([{ ...result, user_id: currentUser }, ...posts]);
+
     await sendMessage(formData);
     return {};
   };
