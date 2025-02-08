@@ -4,7 +4,8 @@ import Posts from "./components/Posts";
 import ChatComponent from "./components/ChatComponent";
 
 const inter = Inter({ subsets: ["latin"] });
-
+//eslint
+//eslint
 export default function Home() {
   return (
     <main>
